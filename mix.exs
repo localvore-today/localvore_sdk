@@ -2,19 +2,26 @@ defmodule LocalvoreSdk.Mixfile do
   use Mix.Project
 
   def project do
-    [app: :localvore_sdk,
-     version: "0.1.0",
-     elixir: "~> 1.3",
-     build_embedded: Mix.env == :prod,
-     start_permanent: Mix.env == :prod,
-     deps: deps()]
+    [
+      app: :localvore_sdk,
+      version: "0.1.0",
+      elixir: "~> 1.3",
+      build_embedded: Mix.env == :prod,
+      start_permanent: Mix.env == :prod,
+      deps: deps()
+    ]
   end
 
   # Configuration for the OTP application
   #
   # Type "mix help compile.app" for more information
   def application do
-    [applications: [:logger]]
+    [
+      applications: [
+        :logger,
+        :httpoison
+      ]
+    ]
   end
 
   # Dependencies can be Hex packages:
@@ -27,6 +34,8 @@ defmodule LocalvoreSdk.Mixfile do
   #
   # Type "mix help deps" for more examples and options
   defp deps do
-    []
+    [
+      {:httpoison, "~> 0.10.0"}
+    ]
   end
 end

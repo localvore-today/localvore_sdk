@@ -1,16 +1,26 @@
 # LocalvoreSdk
 
-**TODO: Add description**
+Provides a wrapper around HTTPoison for the Localvore API V2.
+
+## Configuration
+
+```elixir
+config :localvore_sdk,
+  api_version: "2016-10-28"
+  api_key: "...",
+  api_url: System.get_env("LVT_ELIXIR_API_URL")
+```
 
 ## Installation
-
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed as:
 
   1. Add `localvore_sdk` to your list of dependencies in `mix.exs`:
 
     ```elixir
     def deps do
-      [{:localvore_sdk, "~> 0.1.0"}]
+      [
+        # ...
+        {:localvore_sdk, git: "https://github.com/localvore-today/localvore_sdk"}
+      ]
     end
     ```
 
@@ -18,7 +28,11 @@ If [available in Hex](https://hex.pm/docs/publish), the package can be installed
 
     ```elixir
     def application do
-      [applications: [:localvore_sdk]]
+      [
+        applications: [
+          # ...
+          :localvore_sdk
+        ]
+      ]
     end
     ```
-
