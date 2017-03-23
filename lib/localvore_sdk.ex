@@ -4,6 +4,19 @@ defmodule LocalvoreSdk do
   @api_url "https://api.localvoretoday.com"
   @api_version "2016-10-28"
 
+  def filter(resource, filters) do
+    query = build_query_string(filters)
+    get(resource <> "?" <> query)
+  end
+
+  # private
+
+  defp build_query_string(filters) do
+    filters
+    |> Enum.map(fn({column, query}) -> "filter[#{column}]=#{query}" end)
+    |> Enum.join("&")
+  end
+
   defp domain do
     Application.get_env(:localvore_sdk, :api_url, @default_api_url)
   end
