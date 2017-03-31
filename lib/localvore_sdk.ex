@@ -42,7 +42,7 @@ defmodule LocalvoreSdk do
   end
 
   defp process_url(url) do
-    [ domain, version, url ] |> Enum.join("/")
+    [ domain(), version(), url ] |> Enum.join("/")
   end
 
   defp version do
