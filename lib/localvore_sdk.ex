@@ -1,14 +1,24 @@
 defmodule LocalvoreSdk do
   use HTTPoison.Base
 
-  @api_url "https://api.localvoretoday.com"
-  @api_version "2016-10-28"
+  @default_api_url "https://api.localvoretoday.com"
+  @default_api_version "2016-10-28"
+
+  @domain Application.get_env(:localvore_sdk, :api_url, @default_api_url)
+  @version Application.get_env(:localvore_sdk, :api_version, @default_api_version)
 
   def filter(resource, filters) do
     filters
     |> build_query_string
     |> build_url(resource)
     |> get
+  end
+
+  def filter!(resource, filters) do
+    case filter(resource, filters) do
+      {:ok, result} -> result
+      {:error, reason} -> raise reason
+    end
   end
 
   defp build_filter({column, query}), do: "filter[#{column}]=#{query}"
@@ -21,9 +31,7 @@ defmodule LocalvoreSdk do
 
   defp build_url(query, resource), do: resource <> "?" <> query
 
-  defp domain do
-    Application.get_env(:localvore_sdk, :api_url, @default_api_url)
-  end
+  defp domain, do: @domain
 
   defp process_request_headers(headers) do
     [
@@ -45,7 +53,5 @@ defmodule LocalvoreSdk do
     [ domain(), version(), url ] |> Enum.join("/")
   end
 
-  defp version do
-    Application.get_env(:localvore_sdk, :api_version, @current_api_version)
-  end
+  defp version, do: @api_version
 end
