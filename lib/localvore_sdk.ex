@@ -31,8 +31,6 @@ defmodule LocalvoreSdk do
 
   defp build_url(query, resource), do: resource <> "?" <> query
 
-  defp domain, do: @domain
-
   defp process_request_headers(headers) do
     [
       {"Content-Type", "application/vnd.api+json"},
@@ -50,8 +48,6 @@ defmodule LocalvoreSdk do
   end
 
   defp process_url(url) do
-    [ domain(), version(), url ] |> Enum.join("/")
+    [ @domain, @version, url ] |> Enum.join("/")
   end
-
-  defp version, do: @api_version
 end
