@@ -54,6 +54,8 @@ defmodule LocalvoreSdk do
     ] ++ headers
   end
 
+  defp process_response_body(nil), do: nil
+  defp process_response_body(""), do: nil
   defp process_response_body(body),
     do: body |> Poison.decode! |> atomize_keys
 
