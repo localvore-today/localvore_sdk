@@ -40,6 +40,8 @@ defmodule LocalvoreSdk do
 
   def atomize_keys(value), do: value
 
+  defp build_filter({column, query}) when is_list(query),
+    do: "filter[#{column}]=#{Enum.join(query, ",")}"
   defp build_filter({column, query}), do: "filter[#{column}]=#{query}"
 
   defp build_query_string(filters) do
