@@ -40,10 +40,15 @@ defmodule LocalvoreSdk do
 
   def atomize_keys(value), do: value
 
+  defp build_filter({column, query}) when is_list(query),
+    do: "filter[#{column}]=#{Enum.join(query, ",")}"
   defp build_filter({column, query}), do: "filter[#{column}]=#{query}"
 
-  defp build_query_string(filters),
-    do: filters |> Enum.map(&build_filter/1) |> Enum.join("&")
+  defp build_query_string(filters) do
+    filters
+    |> Enum.map(&build_filter/1)
+    |> Enum.join("&")
+  end
 
   defp build_url(query, resource), do: resource <> "?" <> query
 
@@ -54,10 +59,17 @@ defmodule LocalvoreSdk do
     ] ++ headers
   end
 
+  defp process_request_body(body) when is_map(body),
+    do: Poison.encode!(body)
+  defp process_request_body(body), do: body
+
   defp process_response_body(nil), do: nil
   defp process_response_body(""), do: nil
-  defp process_response_body(body),
-    do: body |> Poison.decode! |> atomize_keys
+  defp process_response_body(body) do
+    body
+    |> Poison.decode!
+    |> atomize_keys
+  end
 
   defp process_url(url), do: [ @domain, @version, url ] |> Enum.join("/")
 
