@@ -40,6 +40,30 @@ defmodule LocalvoreSdk do
 
   def atomize_keys(value), do: value
 
+  def process_request_body(body) when is_map(body),
+    do: Poison.encode!(body)
+  def process_request_body(body), do: body
+
+  def process_response_body(nil), do: nil
+  def process_response_body(""), do: nil
+  def process_response_body(body) do
+    body
+    |> Poison.decode!
+    |> atomize_keys
+  end
+
+  def process_request_headers(headers) do
+    [
+      {"Content-Type", "application/vnd.api+json"},
+      {"Authorization", "Bearer #{@api_key}"},
+    ] ++ headers
+  end
+
+  def process_request_options(options),
+    do: Keyword.put(options, :follow_redirect, true)
+
+  def process_url(url), do: Enum.join([@domain, @version, url], "/")
+
   defp build_filter({column, query}) when is_list(query),
     do: "filter[#{column}]=#{Enum.join(query, ",")}"
   defp build_filter({column, query}), do: "filter[#{column}]=#{query}"
@@ -51,27 +75,6 @@ defmodule LocalvoreSdk do
   end
 
   defp build_url(query, resource), do: resource <> "?" <> query
-
-  defp process_request_headers(headers) do
-    [
-      {"Content-Type", "application/vnd.api+json"},
-      {"Authorization", "Bearer #{@api_key}"},
-    ] ++ headers
-  end
-
-  defp process_request_body(body) when is_map(body),
-    do: Poison.encode!(body)
-  defp process_request_body(body), do: body
-
-  defp process_response_body(nil), do: nil
-  defp process_response_body(""), do: nil
-  defp process_response_body(body) do
-    body
-    |> Poison.decode!
-    |> atomize_keys
-  end
-
-  defp process_url(url), do: [ @domain, @version, url ] |> Enum.join("/")
 
   defp safe_to_atom(input) when is_atom(input), do: input
   defp safe_to_atom(input) when is_bitstring(input), do: String.to_atom(input)
