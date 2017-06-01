@@ -4,14 +4,6 @@ defmodule LocalvoreSdk do
   @default_api_url "https://api.localvoretoday.com"
   @default_api_version "2016-10-28"
 
-  @api_key Application.get_env(:localvore_sdk, :api_key)
-  @domain Application.get_env(:localvore_sdk, :api_url, @default_api_url)
-  @version Application.get_env(
-    :localvore_sdk,
-    :api_version,
-    @default_api_version
-  )
-
   def filter(resource, filters) do
     filters
     |> build_query_string
@@ -53,16 +45,26 @@ defmodule LocalvoreSdk do
   end
 
   def process_request_headers(headers) do
+    api_key = Application.get_env(:localvore_sdk, :api_key)
     [
       {"Content-Type", "application/vnd.api+json"},
-      {"Authorization", "Bearer #{@api_key}"},
+      {"Authorization", "Bearer #{api_key}"},
     ] ++ headers
   end
 
   def process_request_options(options),
     do: Keyword.put(options, :follow_redirect, true)
 
-  def process_url(url), do: Enum.join([@domain, @version, url], "/")
+  def process_url(url) do
+    domain = Application.get_env(:localvore_sdk, :api_url, @default_api_url)
+    version =
+      Application.get_env(
+        :localvore_sdk,
+        :api_version,
+        @default_api_version
+      )
+    Enum.join([domain, version, url], "/")
+  end
 
   defp build_filter({column, query}) when is_list(query),
     do: "filter[#{column}]=#{Enum.join(query, ",")}"
