@@ -18,67 +18,42 @@ defmodule LocalvoreSdk do
     end
   end
 
-  # private
-
-  def atomize_keys(value) when is_map(value) do
-    for {key, val} <- value, into: %{} do
-      {safe_to_atom(key), atomize_keys(val)}
-    end
-  end
-
-  def atomize_keys(value) when is_list(value) do
-    Enum.map(value, &atomize_keys/1)
-  end
-
-  def atomize_keys(value), do: value
-
-  def process_request_body(body) when is_map(body),
-    do: Poison.encode!(body)
+  def process_request_body(body) when is_map(body), do: Poison.encode!(body)
   def process_request_body(body), do: body
+
+  def process_request_headers(headers),
+    do: [{"Content-Type", "application/vnd.api+json"}, {"Authorization", "Bearer #{api_key()}"}] ++ headers
+
+  def process_request_options(options), do: Keyword.put(options, :follow_redirect, true)
 
   def process_response_body(nil), do: nil
   def process_response_body(""), do: nil
-  def process_response_body(body) do
-    body
-    |> Poison.decode!
-    |> atomize_keys
+  def process_response_body(body), do: Poison.decode!(body, keys: :atoms)
+
+  def process_url(url), do: Enum.join([domain(), api_version(), url], "/")
+
+  defp api_key, do: Application.fetch_env!(:localvore_sdk, :api_key)
+  defp api_version, do: Application.get_env(:localvore_sdk, :api_version, @default_api_version)
+
+  defp build_filter({column, query}) do
+    value =
+      cond do
+        is_list(query) -> Enum.join(query, ",")
+        is_map(query) -> Poison.encode(query)
+        true -> query
+      end
+
+    {"filter[#{column}]", value}
   end
-
-  def process_request_headers(headers) do
-    api_key = Application.get_env(:localvore_sdk, :api_key)
-    [
-      {"Content-Type", "application/vnd.api+json"},
-      {"Authorization", "Bearer #{api_key}"},
-    ] ++ headers
-  end
-
-  def process_request_options(options),
-    do: Keyword.put(options, :follow_redirect, true)
-
-  def process_url(url) do
-    domain = Application.get_env(:localvore_sdk, :api_url, @default_api_url)
-    version =
-      Application.get_env(
-        :localvore_sdk,
-        :api_version,
-        @default_api_version
-      )
-    Enum.join([domain, version, url], "/")
-  end
-
-  defp build_filter({column, query}) when is_list(query),
-    do: "filter[#{column}]=#{Enum.join(query, ",")}"
-  defp build_filter({column, query}), do: "filter[#{column}]=#{query}"
 
   defp build_query_string(filters) do
     filters
     |> Enum.map(&build_filter/1)
-    |> Enum.join("&")
+    |> Enum.into(%{})
+    |> URI.encode_query
   end
 
   defp build_url(query, resource), do: resource <> "?" <> query
 
-  defp safe_to_atom(input) when is_atom(input), do: input
-  defp safe_to_atom(input) when is_bitstring(input), do: String.to_atom(input)
-  defp safe_to_atom(input), do: input |> to_string |> safe_to_atom
+  defp domain, do: Application.get_env(:localvore_sdk, :api_url, @default_api_url)
 end
